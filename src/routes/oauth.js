@@ -5,6 +5,9 @@ const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
 const { signAccessToken, signIdToken, verifyToken, ACCESS_TOKEN_TTL } = require('../utils/jwt');
+const { buildCheckoutUrl } = require('../utils/payment');
+
+const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'https://payment.pablogeorge.org';
 
 const SCOPE_LABELS = {
   openid: 'Know who you are',
@@ -40,6 +43,25 @@ router.get('/authorize', (req, res) => {
 
   if (!req.session.userId) {
     return res.redirect('/login');
+  }
+
+  // Payment gate: if this app requires payment, check whether the user has already paid
+  if (app.requires_payment) {
+    const paid = db.prepare(
+      'SELECT id FROM user_app_payments WHERE user_id = ? AND client_id = ?'
+    ).get(req.session.userId, client_id);
+
+    if (!paid) {
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const checkoutUrl = buildCheckoutUrl(PAYMENT_SERVICE_URL, {
+        appId: app.payment_app_id,
+        apiKey: app.payment_api_key,
+        amount: app.payment_amount,
+        returnUrl: `${baseUrl}/oauth/payment-callback`,
+        clientTransactionId: `${req.session.userId}`,
+      });
+      return res.redirect(checkoutUrl);
+    }
   }
 
   const scopeList = normalizedScope.split(' ').map((s) => ({ key: s, label: SCOPE_LABELS[s] || s }));
@@ -168,6 +190,45 @@ router.post('/token', (req, res) => {
   }
 
   return res.status(400).json({ error: 'unsupported_grant_type' });
+});
+
+// GET /oauth/payment-callback — return URL from the payment service
+router.get('/payment-callback', (req, res) => {
+  const { status, transaction_id } = req.query;
+
+  if (!req.session.userId || !req.session.pendingAuth) {
+    return res.status(400).render('error', {
+      title: 'Session Expired',
+      message: 'Your session expired during payment. Please return to the application and try again.',
+    });
+  }
+
+  const pending = req.session.pendingAuth;
+
+  if (status !== 'success') {
+    delete req.session.pendingAuth;
+    return res.redirect(
+      `${pending.redirect_uri}?error=payment_required&state=${encodeURIComponent(pending.state)}`
+    );
+  }
+
+  // Record the payment so this user won't be charged again for this app
+  try {
+    db.prepare(
+      'INSERT OR IGNORE INTO user_app_payments (user_id, client_id, transaction_id) VALUES (?, ?, ?)'
+    ).run(req.session.userId, pending.client_id, transaction_id || '');
+  } catch {
+    // Already recorded — safe to continue
+  }
+
+  // Resume the OAuth flow — pendingAuth is still in session
+  res.redirect('/oauth/authorize?' + new URLSearchParams({
+    client_id: pending.client_id,
+    redirect_uri: pending.redirect_uri,
+    response_type: 'code',
+    scope: pending.scope,
+    state: pending.state,
+  }));
 });
 
 // GET /oauth/userinfo — validate Bearer token and return user profile

@@ -48,6 +48,32 @@
       </div>
     </div>
 
+    <div class="payment-status <%= app.requires_payment ? 'payment-on' : 'payment-off' %>">
+      <div class="payment-status-header">
+        <span class="payment-badge"><%= app.requires_payment ? '💳 Payment required' : 'No payment required' %></span>
+      </div>
+      <% if (app.requires_payment) { %>
+        <div class="payment-details">
+          <div class="credential-row">
+            <label>Amount</label>
+            <div><code>$<%= Number(app.payment_amount).toFixed(2) %> USD</code></div>
+          </div>
+          <div class="credential-row">
+            <label>Payment App ID</label>
+            <div><code><%= app.payment_app_id %></code></div>
+          </div>
+          <div class="credential-row">
+            <label>Payment API Key</label>
+            <div><code><%= app.payment_api_key.slice(0, 8) %>••••••••••••••••</code></div>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:.5rem">
+          Users pay once at registration. Subsequent logins are free.
+          Manage payment apps at <a href="https://payment.pablogeorge.org/admin" target="_blank">payment.pablogeorge.org/admin</a>.
+        </p>
+      <% } %>
+    </div>
+
     <details class="integration-guide">
       <summary>Integration Guide</summary>
       <div class="guide-content">

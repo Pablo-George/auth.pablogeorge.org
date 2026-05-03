@@ -22,10 +22,52 @@
         </label>
         <textarea id="redirect_uris" name="redirect_uris" rows="4" required placeholder="http://localhost:4000/callback"><%= values.redirect_uris || '' %></textarea>
       </div>
+
+      <div class="field toggle-field">
+        <label class="toggle-label">
+          <input type="checkbox" name="requires_payment" value="1" id="requires-payment"
+            <%= values.requires_payment === '1' ? 'checked' : '' %>>
+          <span>Require payment to register</span>
+        </label>
+        <p class="hint" style="margin-top:.25rem">Users must pay once before they can complete registration for this app.</p>
+      </div>
+
+      <div id="payment-fields" style="display:<%= values.requires_payment === '1' ? 'block' : 'none' %>">
+        <div class="payment-fields-inner">
+          <div class="field">
+            <label for="payment_amount">Amount (USD)</label>
+            <input type="number" id="payment_amount" name="payment_amount" step="0.01" min="0.50"
+              value="<%= values.payment_amount || '' %>" placeholder="9.99">
+          </div>
+          <div class="field">
+            <label for="payment_app_id">
+              Payment App ID
+              <span class="hint">(from payment.pablogeorge.org dashboard)</span>
+            </label>
+            <input type="text" id="payment_app_id" name="payment_app_id"
+              value="<%= values.payment_app_id || '' %>" placeholder="a1b2c3d4">
+          </div>
+          <div class="field">
+            <label for="payment_api_key">
+              Payment API Key
+              <span class="hint">(from payment.pablogeorge.org dashboard)</span>
+            </label>
+            <input type="text" id="payment_api_key" name="payment_api_key"
+              value="<%= values.payment_api_key || '' %>" placeholder="64-char hex key">
+          </div>
+        </div>
+      </div>
+
       <button type="submit" class="btn btn-primary">Create Application</button>
     </form>
   </div>
 </main>
+
+<script>
+document.getElementById('requires-payment').addEventListener('change', function () {
+  document.getElementById('payment-fields').style.display = this.checked ? 'block' : 'none';
+});
+</script>
 
 </body>
 </html>

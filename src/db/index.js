@@ -49,6 +49,27 @@ db.exec(`
     expires_at INTEGER NOT NULL,
     revoked INTEGER NOT NULL DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS user_app_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    client_id TEXT NOT NULL,
+    transaction_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_user_app_payments ON user_app_payments(user_id, client_id);
 `);
+
+// Add payment columns to applications table if they don't exist yet (migration)
+const appCols = db.prepare('PRAGMA table_info(applications)').all().map((c) => c.name);
+if (!appCols.includes('requires_payment')) {
+  db.exec(`
+    ALTER TABLE applications ADD COLUMN requires_payment INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE applications ADD COLUMN payment_amount REAL;
+    ALTER TABLE applications ADD COLUMN payment_app_id TEXT;
+    ALTER TABLE applications ADD COLUMN payment_api_key TEXT;
+  `);
+}
 
 module.exports = db;
