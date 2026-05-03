@@ -1,0 +1,12 @@
+<nav class="nav">
+  <a href="/" class="nav-brand">AuthServer</a>
+  <div class="nav-links">
+    <% if (typeof session !== 'undefined' && session && session.userId) { %>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+    <% } else { %>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+    <% } %>
+  </div>
+</nav>

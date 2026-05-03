@@ -1,0 +1,31 @@
+<%- include('../partials/head', { title: 'New Application' }) %>
+<%- include('../partials/nav') %>
+
+<main class="container narrow">
+  <div class="page-header">
+    <a href="/dashboard" class="back-link">← Back</a>
+  </div>
+  <div class="card">
+    <h1>Register Application</h1>
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <form method="POST" action="/dashboard/apps/new">
+      <div class="field">
+        <label for="name">Application Name</label>
+        <input type="text" id="name" name="name" value="<%= values.name || '' %>" required placeholder="My App">
+      </div>
+      <div class="field">
+        <label for="redirect_uris">
+          Allowed Redirect URIs
+          <span class="hint">(one per line)</span>
+        </label>
+        <textarea id="redirect_uris" name="redirect_uris" rows="4" required placeholder="http://localhost:4000/callback"><%= values.redirect_uris || '' %></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Create Application</button>
+    </form>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+<%- include('partials/head', { title: title || 'Error' }) %>
+<%- include('partials/nav') %>
+
+<main class="container narrow">
+  <div class="card">
+    <h1><%= title || 'Error' %></h1>
+    <p><%= message %></p>
+    <a href="/" class="btn btn-secondary" style="margin-top:1rem">Go home</a>
+  </div>
+</main>
+
+</body>
+</html>

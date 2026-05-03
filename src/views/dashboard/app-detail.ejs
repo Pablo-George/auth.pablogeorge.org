@@ -1,0 +1,103 @@
+<%- include('../partials/head', { title: app.name }) %>
+<%- include('../partials/nav') %>
+
+<main class="container narrow">
+  <div class="page-header">
+    <a href="/dashboard" class="back-link">← Back</a>
+  </div>
+  <div class="card">
+    <div class="app-title-row">
+      <div class="app-icon"><%= app.name[0].toUpperCase() %></div>
+      <h1><%= app.name %></h1>
+    </div>
+
+    <% if (showSecret) { %>
+      <div class="alert alert-info">
+        Your application was created. Copy the client secret now — it will not be shown again in full.
+      </div>
+    <% } %>
+
+    <div class="credentials">
+      <div class="credential-row">
+        <label>Client ID</label>
+        <div class="credential-value">
+          <code id="client-id"><%= app.client_id %></code>
+          <button class="btn btn-sm btn-copy" onclick="copy('client-id')">Copy</button>
+        </div>
+      </div>
+
+      <div class="credential-row">
+        <label>Client Secret</label>
+        <div class="credential-value">
+          <% if (showSecret) { %>
+            <code id="client-secret"><%= app.client_secret %></code>
+            <button class="btn btn-sm btn-copy" onclick="copy('client-secret')">Copy</button>
+          <% } else { %>
+            <code><%= app.client_secret.slice(0, 8) %>••••••••••••••••••••••••</code>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="credential-row">
+        <label>Redirect URIs</label>
+        <div>
+          <% redirectUris.forEach(function(uri) { %>
+            <div><code><%= uri %></code></div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <details class="integration-guide">
+      <summary>Integration Guide</summary>
+      <div class="guide-content">
+        <h3>1. Redirect users to login</h3>
+        <pre><code>const params = new URLSearchParams({
+  client_id: '<%= app.client_id %>',
+  redirect_uri: '<%= redirectUris[0] %>',
+  response_type: 'code',
+  scope: 'openid profile email',
+  state: generateRandomState()
+});
+res.redirect(`<%= process.env.BASE_URL || 'http://localhost:3000' %>/oauth/authorize?${params}`);</code></pre>
+
+        <h3>2. Handle the callback</h3>
+        <pre><code>const tokenRes = await fetch('<%= process.env.BASE_URL || 'http://localhost:3000' %>/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'authorization_code',
+    code: req.query.code,
+    redirect_uri: '<%= redirectUris[0] %>',
+    client_id: '<%= app.client_id %>',
+    client_secret: process.env.CLIENT_SECRET
+  })
+});
+const { access_token } = await tokenRes.json();</code></pre>
+
+        <h3>3. Get user info</h3>
+        <pre><code>const userRes = await fetch('<%= process.env.BASE_URL || 'http://localhost:3000' %>/oauth/userinfo', {
+  headers: { Authorization: `Bearer ${access_token}` }
+});
+const user = await userRes.json();</code></pre>
+      </div>
+    </details>
+
+    <div class="danger-zone">
+      <h3>Danger Zone</h3>
+      <form method="POST" action="/dashboard/apps/<%= app.id %>/delete" onsubmit="return confirm('Delete this application? This cannot be undone.')">
+        <button type="submit" class="btn btn-danger">Delete Application</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+function copy(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text);
+}
+</script>
+
+</body>
+</html>

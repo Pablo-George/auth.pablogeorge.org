@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: 'Dashboard' }) %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Welcome back, <%= user.name %></p>
+    </div>
+    <a href="/dashboard/apps/new" class="btn btn-primary">New Application</a>
+  </div>
+
+  <% if (apps.length === 0) { %>
+    <div class="card empty-state">
+      <h2>No applications yet</h2>
+      <p>Register your first application to get OAuth2 credentials.</p>
+      <a href="/dashboard/apps/new" class="btn btn-primary">Create Application</a>
+    </div>
+  <% } else { %>
+    <div class="app-list">
+      <% apps.forEach(function(app) { %>
+        <div class="card app-card">
+          <div class="app-card-header">
+            <div class="app-icon-sm"><%= app.name[0].toUpperCase() %></div>
+            <div>
+              <h3><a href="/dashboard/apps/<%= app.id %>"><%= app.name %></a></h3>
+              <code class="client-id-preview"><%= app.client_id.slice(0, 8) %>...</code>
+            </div>
+          </div>
+          <div class="app-card-actions">
+            <a href="/dashboard/apps/<%= app.id %>" class="btn btn-sm btn-secondary">View</a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</main>
+
+</body>
+</html>
