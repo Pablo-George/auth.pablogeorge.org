@@ -1,26 +1,42 @@
-<%- include('partials/head', { title: 'Login' }) %>
-<%- include('partials/nav') %>
+<%- include('partials/head', { title: 'Admin Sign In' }) %>
 
-<main class="container narrow">
-  <div class="card">
-    <h1>Sign in</h1>
-    <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
-    <% } %>
-    <form method="POST" action="/login">
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required autocomplete="current-password">
-      </div>
-      <button type="submit" class="btn btn-primary btn-full">Sign in</button>
-    </form>
-    <p class="auth-switch">Don't have an account? <a href="/register">Register</a></p>
+<div class="admin-split">
+  <div class="admin-brand">
+    <div class="admin-brand-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="white" fill-opacity=".15"/><path d="M16 7l7 4v8l-7 4-7-4v-8l7-4z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="15" r="2.5" fill="white"/></svg>
+      <span>AuthServer</span>
+    </div>
+    <div class="admin-brand-body">
+      <h2>Identity &amp; Access<br>Management</h2>
+      <p>Manage OAuth applications, users, and credentials for your services.</p>
+    </div>
+    <div class="admin-brand-footer">Admin Console</div>
   </div>
-</main>
+
+  <div class="admin-form-panel">
+    <div class="admin-form-inner">
+      <h1>Admin sign in</h1>
+      <p class="admin-form-sub">AuthServer management portal</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-admin btn-full">Sign in</button>
+      </form>
+      <p class="auth-switch">No admin account? <a href="/register">Create one</a></p>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

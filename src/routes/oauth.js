@@ -39,10 +39,13 @@ router.get('/authorize', (req, res) => {
   }
 
   const normalizedScope = scope || 'openid';
-  req.session.pendingAuth = { client_id, redirect_uri, scope: normalizedScope, state, app_name: app.name };
+  req.session.pendingAuth = {
+    client_id, redirect_uri, scope: normalizedScope, state,
+    app_name: app.name, logo_url: app.logo_url, brand_color: app.brand_color || '#4f46e5',
+  };
 
   if (!req.session.userId) {
-    return res.redirect('/login');
+    return res.redirect('/oauth/login');
   }
 
   // Payment gate: if this app requires payment, check whether the user has already paid
@@ -65,13 +68,105 @@ router.get('/authorize', (req, res) => {
   }
 
   const scopeList = normalizedScope.split(' ').map((s) => ({ key: s, label: SCOPE_LABELS[s] || s }));
-  res.render('authorize', { app_name: app.name, scope_list: scopeList, pendingAuth: req.session.pendingAuth });
+  res.render('authorize', {
+    app_name: app.name,
+    logo_url: app.logo_url || null,
+    brand_color: app.brand_color || '#4f46e5',
+    scope_list: scopeList,
+  });
+});
+
+// GET /oauth/login — client-branded login (only valid mid-OAuth flow)
+router.get('/login', (req, res) => {
+  const pending = req.session.pendingAuth;
+  if (!pending) return res.redirect('/login');
+  if (req.session.userId) return res.redirect('/oauth/authorize?' + new URLSearchParams({
+    client_id: pending.client_id, redirect_uri: pending.redirect_uri,
+    response_type: 'code', scope: pending.scope, state: pending.state,
+  }));
+  res.render('client/login', { error: null, values: {}, app: pending });
+});
+
+router.post('/login', async (req, res) => {
+  const pending = req.session.pendingAuth;
+  if (!pending) return res.redirect('/login');
+
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.render('client/login', { error: 'Email and password are required.', values: { email }, app: pending });
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
+  const valid = user && await require('../utils/password').comparePassword(password, user.password_hash);
+  if (!valid) {
+    return res.render('client/login', { error: 'Invalid email or password.', values: { email }, app: pending });
+  }
+
+  req.session.regenerate((err) => {
+    if (err) return res.render('client/login', { error: 'Login failed. Please try again.', values: { email }, app: pending });
+    req.session.userId = user.id;
+    req.session.pendingAuth = pending;
+    res.redirect('/oauth/authorize?' + new URLSearchParams({
+      client_id: pending.client_id, redirect_uri: pending.redirect_uri,
+      response_type: 'code', scope: pending.scope, state: pending.state,
+    }));
+  });
+});
+
+// GET /oauth/register — client-branded registration (only valid mid-OAuth flow)
+router.get('/register', (req, res) => {
+  const pending = req.session.pendingAuth;
+  if (!pending) return res.redirect('/login');
+  if (req.session.userId) return res.redirect('/oauth/authorize?' + new URLSearchParams({
+    client_id: pending.client_id, redirect_uri: pending.redirect_uri,
+    response_type: 'code', scope: pending.scope, state: pending.state,
+  }));
+  res.render('client/register', { error: null, values: {}, app: pending });
+});
+
+router.post('/register', async (req, res) => {
+  const pending = req.session.pendingAuth;
+  if (!pending) return res.redirect('/login');
+
+  const { name, email, password } = req.body;
+  const { hashPassword } = require('../utils/password');
+
+  if (!name || !email || !password) {
+    return res.render('client/register', { error: 'All fields are required.', values: { name, email }, app: pending });
+  }
+  if (password.length < 8) {
+    return res.render('client/register', { error: 'Password must be at least 8 characters.', values: { name, email }, app: pending });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.render('client/register', { error: 'Invalid email address.', values: { name, email }, app: pending });
+  }
+
+  try {
+    const hash = await hashPassword(password);
+    const result = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)').run(
+      email.toLowerCase().trim(), hash, name.trim()
+    );
+    req.session.regenerate((err) => {
+      if (err) return res.render('client/register', { error: 'Registration failed. Please try again.', values: { name, email }, app: pending });
+      req.session.userId = result.lastInsertRowid;
+      req.session.pendingAuth = pending;
+      res.redirect('/oauth/authorize?' + new URLSearchParams({
+        client_id: pending.client_id, redirect_uri: pending.redirect_uri,
+        response_type: 'code', scope: pending.scope, state: pending.state,
+      }));
+    });
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.render('client/register', { error: 'An account with that email already exists.', values: { name, email }, app: pending });
+    }
+    throw err;
+  }
 });
 
 // POST /oauth/authorize — user approved, issue code and redirect
 router.post('/authorize', (req, res) => {
   if (!req.session.userId) {
-    return res.redirect('/login');
+    return res.redirect('/oauth/login');
   }
 
   const pending = req.session.pendingAuth;

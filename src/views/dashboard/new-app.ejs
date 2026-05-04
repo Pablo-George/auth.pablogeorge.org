@@ -16,20 +16,34 @@
         <input type="text" id="name" name="name" value="<%= values.name || '' %>" required placeholder="My App">
       </div>
       <div class="field">
-        <label for="redirect_uris">
-          Allowed Redirect URIs
-          <span class="hint">(one per line)</span>
-        </label>
-        <textarea id="redirect_uris" name="redirect_uris" rows="4" required placeholder="http://localhost:4000/callback"><%= values.redirect_uris || '' %></textarea>
+        <label for="redirect_uris">Allowed Redirect URIs <span class="hint">(one per line)</span></label>
+        <textarea id="redirect_uris" name="redirect_uris" rows="3" required placeholder="http://localhost:4000/callback"><%= values.redirect_uris || '' %></textarea>
       </div>
 
+      <hr class="form-divider">
+      <p class="form-section-label">Login page branding</p>
+      <p class="hint" style="margin-bottom:1rem">Shown to your users when they sign in. No AuthServer branding visible.</p>
+
+      <div class="field">
+        <label for="logo_url">Logo URL <span class="hint">(optional — https image link)</span></label>
+        <input type="url" id="logo_url" name="logo_url" value="<%= values.logo_url || '' %>" placeholder="https://example.com/logo.png">
+      </div>
+      <div class="field">
+        <label for="brand_color">Brand Color <span class="hint">(hex, e.g. #e11d48)</span></label>
+        <div class="color-input-row">
+          <input type="color" id="brand_color_picker" value="<%= values.brand_color || '#4f46e5' %>" oninput="document.getElementById('brand_color').value=this.value">
+          <input type="text" id="brand_color" name="brand_color" value="<%= values.brand_color || '#4f46e5' %>" pattern="^#[0-9a-fA-F]{6}$" placeholder="#4f46e5" oninput="document.getElementById('brand_color_picker').value=this.value">
+        </div>
+      </div>
+
+      <hr class="form-divider">
       <div class="field toggle-field">
         <label class="toggle-label">
           <input type="checkbox" name="requires_payment" value="1" id="requires-payment"
             <%= values.requires_payment === '1' ? 'checked' : '' %>>
           <span>Require payment to register</span>
         </label>
-        <p class="hint" style="margin-top:.25rem">Users must pay once before they can complete registration for this app.</p>
+        <p class="hint" style="margin-top:.25rem">Users must pay once before completing registration for this app.</p>
       </div>
 
       <div id="payment-fields" style="display:<%= values.requires_payment === '1' ? 'block' : 'none' %>">
@@ -40,20 +54,14 @@
               value="<%= values.payment_amount || '' %>" placeholder="9.99">
           </div>
           <div class="field">
-            <label for="payment_app_id">
-              Payment App ID
-              <span class="hint">(from payment.pablogeorge.org dashboard)</span>
-            </label>
+            <label for="payment_app_id">Payment App ID <span class="hint">(from payment.pablogeorge.org)</span></label>
             <input type="text" id="payment_app_id" name="payment_app_id"
               value="<%= values.payment_app_id || '' %>" placeholder="a1b2c3d4">
           </div>
           <div class="field">
-            <label for="payment_api_key">
-              Payment API Key
-              <span class="hint">(from payment.pablogeorge.org dashboard)</span>
-            </label>
+            <label for="payment_api_key">Payment API Key <span class="hint">(from payment.pablogeorge.org)</span></label>
             <input type="text" id="payment_api_key" name="payment_api_key"
-              value="<%= values.payment_api_key || '' %>" placeholder="64-char hex key">
+              value="<%= values.payment_api_key || '' %>">
           </div>
         </div>
       </div>

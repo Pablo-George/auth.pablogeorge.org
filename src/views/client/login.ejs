@@ -1,0 +1,36 @@
+<%- include('../partials/client-head', { title: 'Sign in to ' + app.app_name, brandColor: app.brand_color }) %>
+
+<div class="client-page">
+  <div class="client-card">
+    <div class="client-app-header">
+      <% if (app.logo_url) { %>
+        <img src="<%= app.logo_url %>" alt="<%= app.app_name %>" class="client-app-logo-img">
+      <% } else { %>
+        <div class="client-app-avatar"><%= app.app_name[0].toUpperCase() %></div>
+      <% } %>
+      <h1 class="client-app-name"><%= app.app_name %></h1>
+      <p class="client-app-sub">Sign in to your account</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/oauth/login">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-brand btn-full">Sign in</button>
+    </form>
+
+    <p class="client-switch">Don't have an account? <a href="/oauth/register">Create one</a></p>
+  </div>
+</div>
+
+</body>
+</html>

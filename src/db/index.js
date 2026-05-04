@@ -71,5 +71,11 @@ if (!appCols.includes('requires_payment')) {
     ALTER TABLE applications ADD COLUMN payment_api_key TEXT;
   `);
 }
+if (!appCols.includes('logo_url')) {
+  db.exec(`
+    ALTER TABLE applications ADD COLUMN logo_url TEXT;
+    ALTER TABLE applications ADD COLUMN brand_color TEXT DEFAULT '#4f46e5';
+  `);
+}
 
 module.exports = db;

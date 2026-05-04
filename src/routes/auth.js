@@ -30,15 +30,13 @@ router.post('/register', async (req, res) => {
 
   try {
     const hash = await hashPassword(password);
-    const stmt = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)');
-    const result = stmt.run(email.toLowerCase().trim(), hash, name.trim());
-
+    const result = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)').run(
+      email.toLowerCase().trim(), hash, name.trim()
+    );
     req.session.regenerate((err) => {
       if (err) return res.render('register', { error: 'Registration failed. Please try again.', values: { name, email } });
       req.session.userId = result.lastInsertRowid;
-      const dest = req.session.pendingAuth ? '/oauth/authorize' : (req.session.returnTo || '/dashboard');
-      delete req.session.returnTo;
-      res.redirect(dest);
+      res.redirect('/dashboard');
     });
   } catch (err) {
     if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
@@ -49,7 +47,7 @@ router.post('/register', async (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-  if (req.session.userId && !req.session.pendingAuth) return res.redirect('/dashboard');
+  if (req.session.userId) return res.redirect('/dashboard');
   res.render('login', { error: null, values: {} });
 });
 
@@ -61,23 +59,15 @@ router.post('/login', async (req, res) => {
   }
 
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
-  if (!user) {
-    return res.render('login', { error: 'Invalid email or password.', values: { email } });
-  }
-
-  const valid = await comparePassword(password, user.password_hash);
+  const valid = user && await comparePassword(password, user.password_hash);
   if (!valid) {
     return res.render('login', { error: 'Invalid email or password.', values: { email } });
   }
 
-  const pendingAuth = req.session.pendingAuth;
   req.session.regenerate((err) => {
     if (err) return res.render('login', { error: 'Login failed. Please try again.', values: { email } });
     req.session.userId = user.id;
-    if (pendingAuth) req.session.pendingAuth = pendingAuth;
-    const dest = pendingAuth ? '/oauth/authorize' : (req.session.returnTo || '/dashboard');
-    delete req.session.returnTo;
-    res.redirect(dest);
+    res.redirect('/dashboard');
   });
 });
 

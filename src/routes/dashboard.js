@@ -19,7 +19,7 @@ router.get('/apps/new', (req, res) => {
 });
 
 router.post('/apps/new', (req, res) => {
-  const { name, redirect_uris, requires_payment, payment_amount, payment_app_id, payment_api_key } = req.body;
+  const { name, redirect_uris, logo_url, brand_color, requires_payment, payment_amount, payment_app_id, payment_api_key } = req.body;
   const wantsPayment = requires_payment === '1';
 
   if (!name || !name.trim()) {
@@ -53,12 +53,17 @@ router.post('/apps/new', (req, res) => {
   const clientId = crypto.randomBytes(16).toString('hex');
   const clientSecret = crypto.randomBytes(32).toString('hex');
 
+  const color = /^#[0-9a-fA-F]{6}$/.test(brand_color) ? brand_color : '#4f46e5';
+
   const result = db.prepare(
     `INSERT INTO applications
-      (name, client_id, client_secret, redirect_uris, owner_id, requires_payment, payment_amount, payment_app_id, payment_api_key)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (name, client_id, client_secret, redirect_uris, owner_id, logo_url, brand_color,
+       requires_payment, payment_amount, payment_app_id, payment_api_key)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     name.trim(), clientId, clientSecret, uris.join(','), req.session.userId,
+    logo_url && logo_url.trim() ? logo_url.trim() : null,
+    color,
     wantsPayment ? 1 : 0,
     wantsPayment ? parseFloat(payment_amount) : null,
     wantsPayment ? payment_app_id.trim() : null,

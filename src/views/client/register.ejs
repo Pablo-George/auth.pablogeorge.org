@@ -1,0 +1,40 @@
+<%- include('../partials/client-head', { title: 'Create account — ' + app.app_name, brandColor: app.brand_color }) %>
+
+<div class="client-page">
+  <div class="client-card">
+    <div class="client-app-header">
+      <% if (app.logo_url) { %>
+        <img src="<%= app.logo_url %>" alt="<%= app.app_name %>" class="client-app-logo-img">
+      <% } else { %>
+        <div class="client-app-avatar"><%= app.app_name[0].toUpperCase() %></div>
+      <% } %>
+      <h1 class="client-app-name"><%= app.app_name %></h1>
+      <p class="client-app-sub">Create your account</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/oauth/register">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" value="<%= values.name || '' %>" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="password">Password <span class="hint">(min. 8 characters)</span></label>
+        <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
+      </div>
+      <button type="submit" class="btn btn-brand btn-full">Create account</button>
+    </form>
+
+    <p class="client-switch">Already have an account? <a href="/oauth/login">Sign in</a></p>
+  </div>
+</div>
+
+</body>
+</html>

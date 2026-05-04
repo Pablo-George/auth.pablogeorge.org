@@ -1,30 +1,46 @@
-<%- include('partials/head', { title: 'Register' }) %>
-<%- include('partials/nav') %>
+<%- include('partials/head', { title: 'Admin Register' }) %>
 
-<main class="container narrow">
-  <div class="card">
-    <h1>Create account</h1>
-    <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
-    <% } %>
-    <form method="POST" action="/register">
-      <div class="field">
-        <label for="name">Full name</label>
-        <input type="text" id="name" name="name" value="<%= values.name || '' %>" required autocomplete="name">
-      </div>
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
-      </div>
-      <div class="field">
-        <label for="password">Password <span class="hint">(min. 8 characters)</span></label>
-        <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
-      </div>
-      <button type="submit" class="btn btn-primary btn-full">Create account</button>
-    </form>
-    <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+<div class="admin-split">
+  <div class="admin-brand">
+    <div class="admin-brand-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="white" fill-opacity=".15"/><path d="M16 7l7 4v8l-7 4-7-4v-8l7-4z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="15" r="2.5" fill="white"/></svg>
+      <span>AuthServer</span>
+    </div>
+    <div class="admin-brand-body">
+      <h2>Identity &amp; Access<br>Management</h2>
+      <p>Manage OAuth applications, users, and credentials for your services.</p>
+    </div>
+    <div class="admin-brand-footer">Admin Console</div>
   </div>
-</main>
+
+  <div class="admin-form-panel">
+    <div class="admin-form-inner">
+      <h1>Create admin account</h1>
+      <p class="admin-form-sub">AuthServer management portal</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/register">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" value="<%= values.name || '' %>" required autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="password">Password <span class="hint">(min. 8 characters)</span></label>
+          <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
+        </div>
+        <button type="submit" class="btn btn-admin btn-full">Create account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

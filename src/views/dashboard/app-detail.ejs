@@ -48,6 +48,21 @@
       </div>
     </div>
 
+    <div class="branding-preview">
+      <p class="form-section-label">Login page branding</p>
+      <div class="branding-preview-inner">
+        <div class="branding-swatch" style="background:<%= app.brand_color || '#4f46e5' %>"></div>
+        <div>
+          <div style="font-size:.85rem"><strong>Color:</strong> <code><%= app.brand_color || '#4f46e5' %></code></div>
+          <% if (app.logo_url) { %>
+            <div style="font-size:.85rem;margin-top:.25rem"><strong>Logo:</strong> <a href="<%= app.logo_url %>" target="_blank">view</a></div>
+          <% } else { %>
+            <div style="font-size:.85rem;margin-top:.25rem;color:var(--muted)">No logo — using letter avatar</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
     <div class="payment-status <%= app.requires_payment ? 'payment-on' : 'payment-off' %>">
       <div class="payment-status-header">
         <span class="payment-badge"><%= app.requires_payment ? '💳 Payment required' : 'No payment required' %></span>

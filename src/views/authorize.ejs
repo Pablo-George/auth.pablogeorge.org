@@ -1,11 +1,15 @@
-<%- include('partials/head', { title: 'Authorize' }) %>
+<%- include('partials/client-head', { title: 'Authorize ' + app_name, brandColor: brand_color }) %>
 
-<main class="container narrow">
-  <div class="card">
-    <div class="authorize-header">
-      <div class="app-icon"><%= app_name[0].toUpperCase() %></div>
-      <h1><%= app_name %></h1>
-      <p class="subtitle">is requesting access to your account</p>
+<div class="client-page">
+  <div class="client-card">
+    <div class="client-app-header">
+      <% if (logo_url) { %>
+        <img src="<%= logo_url %>" alt="<%= app_name %>" class="client-app-logo-img">
+      <% } else { %>
+        <div class="client-app-avatar"><%= app_name[0].toUpperCase() %></div>
+      <% } %>
+      <h1 class="client-app-name"><%= app_name %></h1>
+      <p class="client-app-sub">is requesting access to your account</p>
     </div>
 
     <div class="scope-list">
@@ -18,17 +22,17 @@
     </div>
 
     <div class="authorize-actions">
-      <form method="POST" action="/oauth/authorize" style="display:inline">
+      <form method="POST" action="/oauth/authorize" style="display:contents">
         <input type="hidden" name="action" value="allow">
-        <button type="submit" class="btn btn-primary">Allow</button>
+        <button type="submit" class="btn btn-brand">Allow</button>
       </form>
-      <form method="POST" action="/oauth/authorize" style="display:inline">
+      <form method="POST" action="/oauth/authorize" style="display:contents">
         <input type="hidden" name="action" value="deny">
         <button type="submit" class="btn btn-secondary">Deny</button>
       </form>
     </div>
   </div>
-</main>
+</div>
 
 </body>
 </html>
