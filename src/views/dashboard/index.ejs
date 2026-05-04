@@ -7,14 +7,29 @@
       <h1>Dashboard</h1>
       <p class="subtitle">Welcome back, <%= user.name %></p>
     </div>
-    <a href="/dashboard/apps/new" class="btn btn-primary">New Application</a>
+    <div style="display:flex;gap:.5rem">
+      <a href="/dashboard/apps/export" class="btn btn-secondary">Export</a>
+      <a href="/dashboard/apps/new" class="btn btn-primary">New Application</a>
+    </div>
   </div>
+
+  <% if (typeof imported !== 'undefined' && imported) { %>
+    <div class="alert alert-info" style="margin-bottom:1.25rem">
+      Imported <%= imported %> application<%= imported === 1 ? '' : 's' %> successfully.
+    </div>
+  <% } %>
+
+  <% if (typeof importError !== 'undefined' && importError) { %>
+    <div class="alert alert-error" style="margin-bottom:1.25rem"><%= importError %></div>
+  <% } %>
 
   <% if (apps.length === 0) { %>
     <div class="card empty-state">
       <h2>No applications yet</h2>
-      <p>Register your first application to get OAuth2 credentials.</p>
-      <a href="/dashboard/apps/new" class="btn btn-primary">Create Application</a>
+      <p>Create a new application or import from a previously exported file.</p>
+      <div style="display:flex;gap:.75rem;justify-content:center">
+        <a href="/dashboard/apps/new" class="btn btn-primary">Create Application</a>
+      </div>
     </div>
   <% } else { %>
     <div class="app-list">
@@ -34,7 +49,33 @@
       <% }) %>
     </div>
   <% } %>
+
+  <details class="import-panel">
+    <summary>Import applications</summary>
+    <div class="import-panel-body">
+      <p>Paste your <code>apps.json</code> below, or select the file. Existing apps with matching <code>client_id</code> will be updated.</p>
+      <form method="POST" action="/dashboard/apps/import">
+        <label class="import-file-label" for="import-file">
+          Choose file
+          <input type="file" id="import-file" accept=".json" onchange="loadFile(this)">
+        </label>
+        <textarea name="json" id="import-json" rows="6" placeholder='[{ "name": "My App", "client_id": "...", ... }]'></textarea>
+        <button type="submit" class="btn btn-primary" style="margin-top:.75rem">Import</button>
+      </form>
+    </div>
+  </details>
 </main>
+
+<script>
+function loadFile(input) {
+  const reader = new FileReader();
+  reader.onload = (e) => { document.getElementById('import-json').value = e.target.result; };
+  reader.readAsText(input.files[0]);
+}
+<% if (typeof imported !== 'undefined' && imported) { %>
+history.replaceState(null, '', '/dashboard');
+<% } %>
+</script>
 
 </body>
 </html>

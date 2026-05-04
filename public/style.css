@@ -387,6 +387,53 @@ code { font-family: 'Menlo', 'Consolas', monospace; }
   line-height: 1.6;
 }
 
+/* Import panel */
+.import-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+.import-panel summary {
+  padding: .75rem 1rem;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  user-select: none;
+}
+.import-panel-body {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.import-panel-body p { font-size: .875rem; color: var(--muted); margin-bottom: .75rem; }
+.import-panel-body textarea {
+  width: 100%;
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: .8rem;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+.import-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .85rem;
+  cursor: pointer;
+  background: var(--surface);
+  margin-bottom: .5rem;
+}
+.import-file-label input[type=file] { display: none; }
+
 /* Payment status block */
 .payment-status {
   border: 1px solid var(--border);

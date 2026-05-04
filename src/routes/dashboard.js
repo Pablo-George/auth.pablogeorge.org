@@ -11,7 +11,78 @@ router.use(requireAuth);
 router.get('/', (req, res) => {
   const apps = db.prepare('SELECT * FROM applications WHERE owner_id = ? ORDER BY created_at DESC').all(req.session.userId);
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
-  res.render('dashboard/index', { apps, user });
+  const imported = req.query.imported ? parseInt(req.query.imported, 10) : null;
+  res.render('dashboard/index', { apps, user, imported });
+});
+
+router.get('/apps/export', (req, res) => {
+  const apps = db.prepare('SELECT * FROM applications WHERE owner_id = ? ORDER BY created_at DESC').all(req.session.userId);
+  const exported = apps.map((a) => ({
+    name: a.name,
+    client_id: a.client_id,
+    client_secret: a.client_secret,
+    redirect_uris: a.redirect_uris.split(',').map((u) => u.trim()),
+    logo_url: a.logo_url || null,
+    brand_color: a.brand_color || '#4f46e5',
+    requires_payment: !!a.requires_payment,
+    payment_amount: a.payment_amount || null,
+    payment_app_id: a.payment_app_id || null,
+    payment_api_key: a.payment_api_key || null,
+  }));
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename="apps.json"');
+  res.send(JSON.stringify(exported, null, 2));
+});
+
+router.post('/apps/import', (req, res) => {
+  let apps;
+  try {
+    apps = JSON.parse(req.body.json);
+    if (!Array.isArray(apps)) throw new Error('Expected an array');
+  } catch {
+    const existing = db.prepare('SELECT * FROM applications WHERE owner_id = ? ORDER BY created_at DESC').all(req.session.userId);
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
+    return res.render('dashboard/index', { apps: existing, user, importError: 'Invalid JSON — paste the contents of your exported apps.json file.' });
+  }
+
+  const insert = db.prepare(`
+    INSERT INTO applications
+      (name, client_id, client_secret, redirect_uris, owner_id, logo_url, brand_color,
+       requires_payment, payment_amount, payment_app_id, payment_api_key)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(client_id) DO UPDATE SET
+      name = excluded.name,
+      client_secret = excluded.client_secret,
+      redirect_uris = excluded.redirect_uris,
+      logo_url = excluded.logo_url,
+      brand_color = excluded.brand_color,
+      requires_payment = excluded.requires_payment,
+      payment_amount = excluded.payment_amount,
+      payment_app_id = excluded.payment_app_id,
+      payment_api_key = excluded.payment_api_key
+  `);
+
+  let count = 0;
+  const importMany = db.transaction((list) => {
+    for (const a of list) {
+      if (!a.client_id || !a.client_secret || !a.name || !a.redirect_uris?.length) continue;
+      insert.run(
+        a.name, a.client_id, a.client_secret,
+        Array.isArray(a.redirect_uris) ? a.redirect_uris.join(',') : a.redirect_uris,
+        req.session.userId,
+        a.logo_url || null,
+        /^#[0-9a-fA-F]{6}$/.test(a.brand_color) ? a.brand_color : '#4f46e5',
+        a.requires_payment ? 1 : 0,
+        a.payment_amount || null,
+        a.payment_app_id || null,
+        a.payment_api_key || null,
+      );
+      count++;
+    }
+  });
+  importMany(apps);
+
+  res.redirect(`/dashboard?imported=${count}`);
 });
 
 router.get('/apps/new', (req, res) => {
