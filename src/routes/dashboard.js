@@ -82,6 +82,26 @@ router.get('/apps/:id', (req, res) => {
   res.render('dashboard/app-detail', { app, redirectUris, showSecret });
 });
 
+router.post('/apps/:id/redirect-uris', (req, res) => {
+  const app = db.prepare('SELECT * FROM applications WHERE id = ? AND owner_id = ?').get(req.params.id, req.session.userId);
+  if (!app) return res.status(404).render('error', { title: 'Not Found', message: 'Application not found.' });
+
+  const uris = (req.body.redirect_uris || '').split('\n').map((u) => u.trim()).filter(Boolean);
+  if (uris.length === 0) {
+    const redirectUris = app.redirect_uris.split(',').map((u) => u.trim());
+    return res.render('dashboard/app-detail', { app, redirectUris, showSecret: false, error: 'At least one redirect URI is required.' });
+  }
+  for (const uri of uris) {
+    try { new URL(uri); } catch {
+      const redirectUris = app.redirect_uris.split(',').map((u) => u.trim());
+      return res.render('dashboard/app-detail', { app, redirectUris, showSecret: false, error: `Invalid URI: ${uri}` });
+    }
+  }
+
+  db.prepare('UPDATE applications SET redirect_uris = ? WHERE id = ?').run(uris.join(','), app.id);
+  res.redirect(`/dashboard/apps/${app.id}`);
+});
+
 router.post('/apps/:id/delete', (req, res) => {
   const app = db.prepare('SELECT * FROM applications WHERE id = ? AND owner_id = ?').get(req.params.id, req.session.userId);
   if (!app) return res.status(404).render('error', { title: 'Not Found', message: 'Application not found.' });

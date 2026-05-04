@@ -11,6 +11,9 @@
       <h1><%= app.name %></h1>
     </div>
 
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
     <% if (showSecret) { %>
       <div class="alert alert-info">
         Your application was created. Copy the client secret now — it will not be shown again in full.
@@ -38,13 +41,15 @@
         </div>
       </div>
 
-      <div class="credential-row">
+      <div class="credential-row credential-row--stack">
         <label>Redirect URIs</label>
-        <div>
-          <% redirectUris.forEach(function(uri) { %>
-            <div><code><%= uri %></code></div>
-          <% }) %>
-        </div>
+        <form method="POST" action="/dashboard/apps/<%= app.id %>/redirect-uris" class="redirect-uri-form">
+          <textarea name="redirect_uris" rows="<%= Math.max(redirectUris.length, 2) %>"><%= redirectUris.join('\n') %></textarea>
+          <div class="redirect-uri-actions">
+            <span class="hint">One per line. Must be exact matches.</span>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+          </div>
+        </form>
       </div>
     </div>
 
